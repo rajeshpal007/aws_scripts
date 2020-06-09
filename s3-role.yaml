@@ -1,0 +1,47 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: S3 IAM role template
+Parameters:
+  Datasource:
+    Description: "The name of the data source to be access"
+    Type: "String"
+    MinLength: "0"
+    MaxLength: "34"
+  Bucketname:
+    Description: "The name of the s3 bucket"
+    Type: "String"
+    MinLength: "2"
+    MaxLength: "34"
+
+Resources:
+    S3AwsReadonlyAccountRole:
+      Type: "AWS::IAM::Role"
+      Properties:
+        Description: " Allows S3 to call AWS services on your behalf."
+        RoleName: "AWSS3RealonlyAccess"
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Sid: AllowUserToReadS3Object
+            Effect: Allow
+            #Principal: 
+            #  !Join [ "", [ "arn:aws:iam::", !Ref AccountId ,":role/s3_readonly_access"]]
+            Principal:
+              Service:
+                s3.amazonaws.com
+            Action: 
+            - sts:AssumeRole
+        Path : "/"
+     
+    RolePolicies: 
+      Type: "AWS::IAM::Policy"
+      Properties: 
+        PolicyName: "S3GetObject"
+        PolicyDocument:   
+          Version: "2012-10-17"
+          Statement: 
+            - Effect: "Allow"
+              Action: "s3:GetObject"
+              Resource:
+                !Join [ "", ["arn:aws:s3:::", !Ref Bucketname, "/", !Ref Datasource]] 
+        Roles: [!Ref "S3AwsReadonlyAccountRole"]
