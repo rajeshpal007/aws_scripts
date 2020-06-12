@@ -1,0 +1,81 @@
+#!/bin/bash 
+
+
+#=== FUNCTION ================================================================
+# NAME: Retrieve_Batch
+# DESCRIPTION: To restore glacier to s3 object
+# PARAMETER : BUCKET_NAME PREFIXNAME DATERANGE TIERTYPE DATASOURCE
+#=============================================================================
+function Retrieve_Batch(){
+    BUCKET_NAME=$1
+    DATERANGE=$2
+    TIERTYPE=$3
+    DATASOURCE=$4
+    PREFIXNAME=$5
+
+    if [ -z  "$PREFIXNAME" ]
+    then 
+        BUCKETNAME=$BUCKET_NAME
+    else
+        BUCKETNAME=$BUCKET_NAME$PREFIXNAME
+    fi
+    
+    # It will get a temporary copy of required Glacier obj. for the duration specified in the restore request
+    echo "Start restoring the file $DATASOURCE"
+    aws s3api restore-object --restore-request Days=$DATERANGE --bucket $BUCKETNAME --key $DATASOURCE
+    echo "Completed restoring the file $DATASOURCE"
+    
+    # using following to backup the data permanent from temporary storage. 
+    echo "copying to bucket as per tier retrieval"
+    aws s3 cp s3://$BUCKETNAME s3://$BUCKETNAME --force-glacier-transfer --storage-class $TIERTYPE
+    echo "copied to bucket as per tier retrieval"
+}
+
+#=== FUNCTION ================================================================
+# NAME: Retrieve_Batch_help
+# DESCRIPTION: Retrieve_Batch help & usage.
+# PARAMETER : BUCKET_NAME PREFIXNAME DATERANGE TIERTYPE DATASOURCE
+#=============================================================================
+function Retrieve_Batch_help(){
+    bucketname=$2
+    daterange=$3
+    tiertype=$4
+    datasource=$5
+    prefixname=$6
+
+    bucketname=$(echo "$bucketname" | tr -d '=')
+    daterange=`echo "$daterange"  | tr -d '='`
+    tiertype=`echo "$tiertype" | tr -d '='`
+    datasource=`echo "$datasource"  | tr -d '='`
+    prefixname=`echo "$prefixname" | tr -d '='`
+
+    if [[ "$2" == "-h" ]]; then
+        echo Usage: Retrieve_Batch  bucketname daterange tiertype datasource [ prefixname]
+    elif [[ ( $# -lt 5 || $# -gt 6 ) || ( "$daterange" == "daterange" || -z $daterange  ) \
+    && ( "$bucketname" == "bucketname" || -z $bucketname ) \
+    && ( "$tiertype" == "tiertype" || -z $tiertype ) \
+    && ( "$datasource" == "datasource" || -z $datasource )]]; then
+        echo Usage: Retrieve_Batch  bucketname daterange tiertype datasource [ prefixname]
+    else
+        #check for optional parameter [ prefixname ]
+        if [[ -z $PREFIXNAME  ]]; then
+            result=$( Retrieve_Batch $bucketname $daterange $tiertype $datasource)
+            echo ${result}
+        else
+            result=$( Retrieve_Batch $bucketname $daterange $tiertype $datasource $prefixname )
+            echo ${result}
+        fi
+    fi
+}
+
+case "$1" in
+    Retrieve_Batch)
+        Retrieve_Batch_help $*
+        ;;
+    
+    *)
+        echo $"Usage: $0 [-h] Retrieve_Batch"
+        echo positional argument:
+        echo "-h, --help        show this help message and exit"
+        exit 1
+esac
