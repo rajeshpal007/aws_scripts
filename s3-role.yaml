@@ -51,27 +51,36 @@ Resources:
     S3RolePolicies: 
       Type: "AWS::IAM::Policy"
       Properties: 
-        PolicyName: "AmazonS3FullAccess"
+        PolicyName: "S3FullAccess"
         PolicyDocument:   
           Version: "2012-10-17"
           Statement: 
             - Effect: "Allow"
               Action: "*"
               Resource:
-                !Join [ "", ["arn:aws:s3:::", !Ref Bucketname]] 
+                !Join [ "", ["arn:aws:s3:::", !Ref Bucketname, ":"]] 
         Roles: [!Ref "S3AWSBatchRetrieveRole"]
 
     S3GlacierRolePolicies: 
       Type: "AWS::IAM::Policy"
       Properties: 
-        PolicyName: "AmazonGlacierReadOnlyAccess"
+        PolicyName: "GlacierReadOnlyAccess"
         PolicyDocument:   
           Version: "2012-10-17"
           Statement: 
             - Effect: "Allow"
               Action:
-                - "glacier:GetDataRetrievalPolicy"
                 - "glacier:GetVaultAccessPolicy"
+                - "glacier:DescribeVault"
+                - "glacier:GetJobOutput"
+                - "glacier:GetVaultLock"
+                - "glacier:GetVaultNotifications"
+                - "glacier:DescribeJob"
               Resource:
-                !Join [ "", ["arn:aws:glacier:::", !Ref Region, ": ", !Ref AccountId, ":vaults/", !Ref Vaultname]] 
+                - !Join [ "", ["arn:aws:glacier:", !Ref Region, ":", !Ref AccountId, ":vaults/", !Ref Vaultname]] 
+                - !Join [ "", ["arn:aws:glacier:*:*:vaults/", !Ref Vaultname]]
+            - Effect: "Allow"
+              Action:
+                - "glacier:GetDataRetrievalPolicy"
+              Resource: "*"
         Roles: [!Ref "S3AWSBatchRetrieveRole"]
