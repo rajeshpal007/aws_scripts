@@ -1,5 +1,8 @@
 #!/bin/bash 
 
+# ------------------------------------------------------------------------
+#  Objective : Utility to retrieve Glacier object to S3 bucket   
+# ------------------------------------------------------------------------
 
 #=== FUNCTION ================================================================
 # NAME: Retrieve_Batch
@@ -7,7 +10,7 @@
 # PARAMETER : BUCKET_NAME PREFIXNAME DATERANGE TIERTYPE DATASOURCE
 #=============================================================================
 function Retrieve_Batch(){
-    BUCKET_NAME=$1
+    BUCKETNAME=$1
     DATERANGE=$2
     TIERTYPE=$3
     DATASOURCE=$4
@@ -15,19 +18,20 @@ function Retrieve_Batch(){
 
     if [ -z  "$PREFIXNAME" ]
     then 
-        BUCKETNAME=$BUCKET_NAME
+        KEY=$DATERANGE
     else
-        BUCKETNAME=$BUCKET_NAME$PREFIXNAME
+        KEY=$PREFIXNAME$DATERANGE
     fi
-    
+
+
     # It will get a temporary copy of required Glacier obj. for the duration specified in the restore request
     echo "Start restoring the file $DATASOURCE"
-    aws s3api restore-object --restore-request Days=$DATERANGE --bucket $BUCKETNAME --key $DATASOURCE
+    aws s3api restore-object --bucket $BUCKETNAME --key $KEY --restore-request '{"Days":$DATERANGE,"GlacierJobParameters":{"Tier":"$TIERTYPE"}}'
     echo "Completed restoring the file $DATASOURCE"
     
-    # using following to backup the data permanent from temporary storage. 
+    # Change the obj storage class to Amazon S3 Standard
     echo "copying to bucket as per tier retrieval"
-    aws s3 cp s3://$BUCKETNAME s3://$BUCKETNAME --force-glacier-transfer --storage-class $TIERTYPE
+    aws s3 cp s3://$BUCKETNAME$KEY s3://$BUCKETNAME$KEY --force-glacier-transfer --storage-class $TIERTYPE
     echo "copied to bucket as per tier retrieval"
 }
 
