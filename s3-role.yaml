@@ -56,9 +56,14 @@ Resources:
           Version: "2012-10-17"
           Statement: 
             - Effect: "Allow"
-              Action: "*"
+              Action: 
+                - "s3:GetObject"
+                - s3:PutObject
               Resource:
-                !Join [ "", ["arn:aws:s3:::", !Ref Bucketname, ":"]] 
+                - !Join [ "", ["arn:aws:s3:::", !Ref Bucketname]] 
+                - !Join [ "", ["arn:aws:s3:*:*:accesspoint/*"]]
+                - !Join [ "", ["arn:aws:s3:::*/*"]]
+                - !Join [ "", ["arn:aws:s3:*:*:job/*"]]
         Roles: [!Ref "S3AWSBatchRetrieveRole"]
 
     S3GlacierRolePolicies: 
