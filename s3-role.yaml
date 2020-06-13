@@ -2,8 +2,8 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: S3 IAM role template
 Parameters:
-  Datasource:
-    Description: "The name of the data source to be access"
+  RealmName:
+    Description: "The name of this realm"
     Type: "String"
     MinLength: "0"
     MaxLength: "34"
@@ -11,21 +11,36 @@ Parameters:
     Description: "The name of the s3 bucket"
     Type: "String"
     MinLength: "2"
+    MaxLength: "34"  
+  Vaultname:
+    Description: "The name of the vault to be access"
+    Type: "String"
+    MinLength: "0"
+    MaxLength: "34"
+  AccountId:
+    Description: "The name of this account"
+    Type: "String"
+    MinLength: "0"
+    MaxLength: "24"
+    AllowedPattern: "[0-9]*"
+  Region:
+    Description: "The name of the data source to be access"
+    Type: "String"
+    MinLength: "0"
     MaxLength: "34"
 
 Resources:
-    S3AwsReadonlyAccountRole:
+    S3AWSBatchRetrieveRole:
       Type: "AWS::IAM::Role"
       Properties:
         Description: " Allows S3 to call AWS services on your behalf."
-        RoleName: "AWSS3RealonlyAccess"
+        RoleName:
+          !Join [ "", ["AwsS3BatchRetrieveAccess", !Ref RealmName]]
         AssumeRolePolicyDocument:
           Version: '2012-10-17'
           Statement:
           - Sid: AllowUserToReadS3Object
             Effect: Allow
-            #Principal: 
-            #  !Join [ "", [ "arn:aws:iam::", !Ref AccountId ,":role/s3_readonly_access"]]
             Principal:
               Service:
                 s3.amazonaws.com
@@ -33,15 +48,28 @@ Resources:
             - sts:AssumeRole
         Path : "/"
      
-    RolePolicies: 
+    S3RolePolicies: 
       Type: "AWS::IAM::Policy"
       Properties: 
-        PolicyName: "S3GetObject"
+        PolicyName: "S3FullAccess"
         PolicyDocument:   
           Version: "2012-10-17"
           Statement: 
             - Effect: "Allow"
-              Action: "s3:GetObject"
+              Action: "*"
               Resource:
-                !Join [ "", ["arn:aws:s3:::", !Ref Bucketname, "/", !Ref Datasource]] 
-        Roles: [!Ref "S3AwsReadonlyAccountRole"]
+                !Join [ "", ["arn:aws:s3:::", !Ref Bucketname]] 
+        Roles: [!Ref "S3AWSBatchRetrieveRole"]
+
+    S3GlacierRolePolicies: 
+      Type: "AWS::IAM::Policy"
+      Properties: 
+        PolicyName: "S3GlacierGetObject"
+        PolicyDocument:   
+          Version: "2012-10-17"
+          Statement: 
+            - Effect: "Allow"
+              Action: "glacier:GetDataRetrievalPolicy"
+              Resource:
+                !Join [ "", ["arn:aws:glacier:::", !Ref Region, ": ", !Ref AccountId, ":vaults/", !Ref Vaultname]] 
+        Roles: [!Ref "S3AWSBatchRetrieveRole"]
