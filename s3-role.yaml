@@ -43,7 +43,7 @@ Resources:
             Effect: Allow
             Principal:
               Service:
-                s3.amazonaws.com
+                cloudformation.amazonaws.com
             Action: 
             - sts:AssumeRole
         Path : "/"
@@ -51,7 +51,7 @@ Resources:
     S3RolePolicies: 
       Type: "AWS::IAM::Policy"
       Properties: 
-        PolicyName: "S3FullAccess"
+        PolicyName: "AmazonS3FullAccess"
         PolicyDocument:   
           Version: "2012-10-17"
           Statement: 
@@ -64,12 +64,14 @@ Resources:
     S3GlacierRolePolicies: 
       Type: "AWS::IAM::Policy"
       Properties: 
-        PolicyName: "S3GlacierGetObject"
+        PolicyName: "AmazonGlacierReadOnlyAccess"
         PolicyDocument:   
           Version: "2012-10-17"
           Statement: 
             - Effect: "Allow"
-              Action: "glacier:GetDataRetrievalPolicy"
+              Action:
+                - "glacier:GetDataRetrievalPolicy"
+                - "glacier:GetVaultAccessPolicy"
               Resource:
                 !Join [ "", ["arn:aws:glacier:::", !Ref Region, ": ", !Ref AccountId, ":vaults/", !Ref Vaultname]] 
         Roles: [!Ref "S3AWSBatchRetrieveRole"]
