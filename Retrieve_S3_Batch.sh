@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash -x
 
 # ------------------------------------------------------------------------
 #  Objective : Utility to retrieve Glacier object to S3 bucket   
@@ -18,15 +18,15 @@ function Retrieve_Batch(){
 
     if [ -z  "$PREFIXNAME" ]
     then 
-        KEY=$DATERANGE
+        KEY=$DATASOURCE
     else
-        KEY=$PREFIXNAME$DATERANGE
+        KEY=$PREFIXNAME$DATASOURCE
     fi
 
 
     # It will get a temporary copy of required Glacier obj. for the duration specified in the restore request
     echo "Start restoring the file $DATASOURCE"
-    aws s3api restore-object --bucket $BUCKETNAME --key $KEY --restore-request '{"Days":$DATERANGE,"GlacierJobParameters":{"Tier":"$TIERTYPE"}}'
+    aws s3api restore-object --bucket $BUCKETNAME --key $KEY --restore-request "Days"=$DATERANGE,"GlacierJobParameters"={"Tier"="${TIERTYPE}"}
     echo "Completed restoring the file $DATASOURCE"
     
     # Change the obj storage class to Amazon S3 Standard
