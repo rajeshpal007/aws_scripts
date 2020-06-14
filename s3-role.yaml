@@ -2,6 +2,11 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: S3 IAM role template
 Parameters:
+  Username:
+    Description: "The name of this realm"
+    Type: "String"
+    MinLength: "0"
+    MaxLength: "34"
   RealmName:
     Description: "The name of this realm"
     Type: "String"
@@ -61,6 +66,8 @@ Resources:
                 - "s3:PutObject"
               Resource:
                 - !Join [ "", ["arn:aws:s3:::", !Ref Bucketname, "/*"]] 
+        Users :
+          - !Ref "Username"
         Roles: [!Ref "S3AWSBatchRetrieveRole"]
 
     S3GlacierRolePolicies: 
@@ -85,4 +92,6 @@ Resources:
               Action:
                 - "glacier:GetDataRetrievalPolicy"
               Resource: "*"
+        Users :
+          - !Ref "Username"
         Roles: [!Ref "S3AWSBatchRetrieveRole"]
