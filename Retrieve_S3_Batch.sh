@@ -26,12 +26,12 @@ function Retrieve_Batch(){
 
     # It will get a temporary copy of required Glacier obj. for the duration specified in the restore request
     echo "Start restoring the file $DATASOURCE"
-    aws s3api restore-object --bucket $BUCKETNAME --key $KEY --restore-request "Days"=$DATERANGE,"GlacierJobParameters"={"Tier"="${TIERTYPE}"}
+    aws s3api restore-object --bucket $BUCKETNAME --key $KEY  --restore-request '{"Days":'"$DATERANGE"',"GlacierJobParameters":{"Tier":"'"$TIERTYPE"'"}}'
     echo "Completed restoring the file $DATASOURCE"
     
     # Change the obj storage class to Amazon S3 Standard
     echo "copying to bucket as per tier retrieval"
-    aws s3 cp s3://$BUCKETNAME$KEY s3://$BUCKETNAME$KEY --force-glacier-transfer --storage-class $TIERTYPE
+    aws s3 cp s3://$BUCKETNAME/$KEY s3://$BUCKETNAME/$KEY --force-glacier-transfer --storage-class $TIERTYPE
     echo "copied to bucket as per tier retrieval"
 }
 
