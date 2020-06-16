@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash 
 
 # ------------------------------------------------------------------------
 #  Objective : Utility to retrieve Glacier object to S3 bucket   
@@ -14,7 +14,7 @@ function Retrieve_Batch(){
     DATERANGE=$2
     TIERTYPE=$3
     DATASOURCE=$4
-    PREFIXNAME=$5
+    PREFIXNAME=$5    
 
     if [ -z  "$PREFIXNAME" ]
     then 
@@ -22,7 +22,6 @@ function Retrieve_Batch(){
     else
         KEY=$PREFIXNAME$DATASOURCE
     fi
-
 
     # It will get a temporary copy of required Glacier obj. for the duration specified in the restore request
     echo "Start restoring the file $DATASOURCE"
@@ -47,12 +46,19 @@ function Retrieve_Batch_help(){
     datasource=$5
     prefixname=$6
 
-    bucketname=$(echo "$bucketname" | tr -d '=')
-    daterange=`echo "$daterange"  | tr -d '='`
-    tiertype=`echo "$tiertype" | tr -d '='`
-    datasource=`echo "$datasource"  | tr -d '='`
-    prefixname=`echo "$prefixname" | tr -d '='`
+    #Fetched and parse the required argument
+    bucketname=`cut -d "=" -f 2 <<< "$bucketname"`
+    daterange=`cut -d "=" -f 2 <<< "$daterange"`
+    tiertype=`cut -d "=" -f 2 <<< "$tiertype"`
+    datasource=`cut -d "=" -f 2 <<< "$datasource"`
+    prefixname=`cut -d "=" -f 2 <<< "$prefixname"`
 
+    #bucketname=$(echo "$bucketname" | tr -d '=')
+    #daterange=`echo "$daterange"  | tr -d '='`
+    #tiertype=`echo "$tiertype" | tr -d '='`
+    #datasource=`echo "$datasource"  | tr -d '='`
+    #prefixname=`echo "$prefixname" | tr -d '='`
+    
     if [[ "$2" == "-h" ]]; then
         echo Usage: Retrieve_Batch  bucketname daterange tiertype datasource [ prefixname]
     elif [[ ( $# -lt 5 || $# -gt 6 ) || ( "$daterange" == "daterange" || -z $daterange  ) \
